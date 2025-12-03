@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seilnetz V2.1: The Sonic Web</title>
+
+    <!-- CDN Dependencies -->
+    <script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/gsap@3.12.2/dist/gsap.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #f5f5f5;
+            --panel-bg: rgba(255, 255, 255, 0.9);
+            --text: #222;
+            --text-muted: #666;
+            --accent: #d4a017;
+            /* Yellow */
+            --glow: #cc2936;
+            /* Red */
+            --success: #2ecc71;
+            --border: #ddd;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'SF Mono', 'Menlo', monospace;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        #canvas-container {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        #ui-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        #panel {
+            width: 320px;
+            height: 100%;
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid var(--border);
+            padding: 20px;
+            pointer-events: auto;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            font-size: 1rem;
+            color: var(--glow);
+            margin: 0 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--glow);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        section {
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 10px 0;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+        }
+
+        .led {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+            margin-right: 10px;
+            transition: all 0.3s;
+        }
+
+        .led.on {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: var(--text);
+            color: white;
+            border: none;
+            font-family: inherit;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+        }
+
+        button:hover {
+            background: #444;
+        }
+
+        button.active {
+            background: var(--accent);
+            color: #000;
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            border: 1px solid var(--border);
+            background: white;
+            margin-bottom: 8px;
+        }
+
+        #log {
+            flex: 1;
+            min-height: 150px;
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 10px;
+            font-size: 0.65rem;
+            overflow-y: auto;
+            color: var(--text-muted);
+        }
+
+        .log-entry {
+            margin-bottom: 2px;
+        }
+
+        .log-time {
+            opacity: 0.5;
+        }
+
+        details {
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 0.75rem;
+        }
+
+        details summary {
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        details p {
+            margin: 10px 0 0 0;
+            line-height: 1.5;
+        }
+
+        details code {
+            background: #eee;
+            padding: 2px 4px;
+        }
+
+        #overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+
+        #overlay h1 {
+            color: white;
+            border: none;
+            font-size: 2rem;
+        }
+
+        #overlay p {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="overlay">
+        <h1>🕸️ SEILNETZ</h1>
+        <p>Click anywhere to enter</p>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div id="ui-layer">
+        <div id="panel">
+            <h1>🕸️ Seilnetz</h1>
+
+            <section>
+                <h2>Status</h2>
+                <div class="status-row">
+                    <div id="led-audio" class="led"></div>
+                    <span>Audio Engine</span>
+                </div>
+                <div class="status-row">
+                    <div id="led-midi" class="led"></div>
+                    <span id="midi-name">No MIDI Device</span>
+                </div>
+            </section>
+
+            <section>
+                <h2>Simulation</h2>
+                <button id="btn-auto">Start Auto-Play</button>
+            </section>
+
+            <section>
+                <h2>Sound Preset</h2>
+                <select id="preset-select">
+                    <option value="safe">CMaj9 – Safe & Warm</option>
+                    <option value="bright">Pentatonic – Bright</option>
+                    <option value="eno">Eno Drones – Ambient</option>
+                    <option value="chaos">Chaos – 5 + Screech</option>
+                </select>
+            </section>
+
+            <section>
+                <details>
+                    <summary>How to Connect MIDI</summary>
+                    <p><strong>macOS:</strong> Open Audio MIDI Setup → Window → Show MIDI Studio → Click Bluetooth icon
+                        → Connect your device.</p>
+                    <p><strong>Windows:</strong> Use USB MIDI, or install <code>loopMIDI</code> + <code>MIDIberry</code>
+                        for Bluetooth.</p>
+                    <p>Once paired at OS level, refresh this page. Device will appear above.</p>
+                </details>
+            </section>
+
+            <section>
+                <h2>Controls</h2>
+                <p style="font-size: 0.7rem; color: var(--text-muted); margin: 0;">
+                    Keys 1-6: Trigger sensors<br>
+                    Drag: Rotate view<br>
+                    Scroll: Zoom
+                </p>
+            </section>
+
+            <section style="flex: 1; display: flex; flex-direction: column;">
+                <h2>Log</h2>
+                <div id="log"></div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * SEILNETZ V2.1
+         * Clean, modular, single-file architecture
+         * KISS / DRY / YAGNI
+         */
+
+        // === CONFIGURATION ===
+        const PRESETS = {
+            safe: {
+                name: 'CMaj9 Safe',
+                notes: [36, 43, 52, 59, 62, 67], // C2, G2, E3, B3, D4, G4
+                envelope: { attack: 0.4, decay: 0.2, sustain: 0.6, release: 4 },
+                oscillator: 'sine',
+                filterFreq: 3000,
+                reverbWet: 0.5
+            },
+            bright: {
+                name: 'Pentatonic Bright',
+                notes: [60, 62, 64, 67, 69, 72], // C4, D4, E4, G4, A4, C5
+                envelope: { attack: 0.1, decay: 0.1, sustain: 0.8, release: 2 },
+                oscillator: 'triangle',
+                filterFreq: 8000,
+                reverbWet: 0.3
+            },
+            eno: {
+                name: 'Eno Drones',
+                notes: [36, 52, 55, 59, 64, 71], // C2, E3, G3, B3, E4, B4 (wide)
+                envelope: { attack: 4, decay: 1, sustain: 0.8, release: 12 },
+                oscillator: 'sine',
+                filterFreq: 1500,
+                reverbWet: 0.9
+            },
+            chaos: {
+                name: 'Chaos + Screech',
+                notes: [48, 52, 55, 59, 62, 96], // C3, E3, G3, B3, D4, C7 (SCREECH)
+                envelope: { attack: 0.01, decay: 0.1, sustain: 1, release: 0.5 },
+                oscillator: 'square',
+                filterFreq: 10000,
+                reverbWet: 0.2
+            }
+        };
+
+        const NODE_POSITIONS = [
+            { x: -2, y: 0, z: 0 },
+            { x: 2, y: 0, z: 0 },
+            { x: 0, y: 1.8, z: 0 },
+            { x: 0, y: -1.8, z: 0 },
+            { x: 0, y: 0, z: 2 },
+            { x: 0, y: 0, z: -2 }
+        ];
+
+        // === EVENT BUS ===
+        class Bus {
+            constructor() { this.subs = {}; }
+            on(e, fn) { (this.subs[e] ||= []).push(fn); }
+            emit(e, d) { this.subs[e]?.forEach(fn => fn(d)); }
+        }
+
+        // === AUDIO ENGINE ===
+        class Audio {
+            constructor(bus) {
+                this.bus = bus;
+                this.synth = null;
+                this.filter = null;
+                this.reverb = null;
+                this.preset = PRESETS.safe;
+                this.ready = false;
+
+                bus.on('trigger', d => this.play(d.sensor, d.velocity));
+                bus.on('preset', name => this.setPreset(name));
+            }
+
+            async init() {
+                await Tone.start();
+
+                this.synth = new Tone.PolySynth(Tone.Synth, { maxPolyphony: 8 });
+                this.filter = new Tone.Filter(3000, 'lowpass');
+                this.reverb = new Tone.Reverb({ decay: 8, wet: 0.5 });
+
+                this.synth.chain(this.filter, this.reverb, Tone.Destination);
+                this.applyPreset();
+                this.ready = true;
+            }
+
+            setPreset(name) {
+                this.preset = PRESETS[name] || PRESETS.safe;
+                if (this.ready) this.applyPreset();
+            }
+
+            applyPreset() {
+                const p = this.preset;
+                this.synth.set({
+                    oscillator: { type: p.oscillator },
+                    envelope: p.envelope
+                });
+                this.filter.frequency.value = p.filterFreq;
+                this.reverb.wet.value = p.reverbWet;
+            }
+
+            play(sensor, velocity) {
+                if (!this.ready) return;
+                const note = this.preset.notes[sensor % this.preset.notes.length];
+                const noteName = Tone.Frequency(note, 'midi').toNote();
+                const vol = velocity / 127;
+
+                this.synth.triggerAttack(noteName, Tone.now(), vol);
+                // Release based on preset - drones hold longer
+                const holdTime = this.preset.envelope.attack + 0.1;
+                this.synth.triggerRelease(noteName, Tone.now() + holdTime);
+            }
+        }
+
+        // === 3D VISUALIZER ===
+        class Viz {
+            constructor(container, bus) {
+                this.bus = bus;
+                this.nodes = [];
+                this.basePosY = [];
+                this.isDragging = false;
+                this.prevMouse = { x: 0, y: 0 };
+                this.rotation = { x: 0.3, y: 0 };
+
+                // Scene
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0xf0f0f0);
+
+                // Camera
+                this.camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 100);
+                this.camera.position.set(0, 2, 8);
+
+                // Renderer
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                this.renderer.setSize(innerWidth, innerHeight);
+                this.renderer.setPixelRatio(devicePixelRatio);
+                container.appendChild(this.renderer.domElement);
+
+                // Simple drag controls
+                const canvas = this.renderer.domElement;
+                canvas.addEventListener('mousedown', e => {
+                    this.isDragging = true;
+                    this.prevMouse = { x: e.clientX, y: e.clientY };
+                });
+                canvas.addEventListener('mousemove', e => {
+                    if (!this.isDragging) return;
+                    const dx = e.clientX - this.prevMouse.x;
+                    const dy = e.clientY - this.prevMouse.y;
+                    this.rotation.y += dx * 0.005;
+                    this.rotation.x += dy * 0.005;
+                    this.rotation.x = Math.max(-1, Math.min(1, this.rotation.x));
+                    this.prevMouse = { x: e.clientX, y: e.clientY };
+                });
+                canvas.addEventListener('mouseup', () => this.isDragging = false);
+                canvas.addEventListener('mouseleave', () => this.isDragging = false);
+                canvas.addEventListener('wheel', e => {
+                    this.camera.position.z += e.deltaY * 0.01;
+                    this.camera.position.z = Math.max(3, Math.min(20, this.camera.position.z));
+                });
+
+                // Lights
+                this.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+                const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+                sun.position.set(5, 10, 5);
+                this.scene.add(sun);
+
+                this.createNet();
+                this.animate();
+
+                bus.on('trigger', d => this.triggerNode(d.sensor, d.velocity));
+                window.addEventListener('resize', () => this.resize());
+            }
+
+            createNet() {
+                const geo = new THREE.SphereGeometry(0.4, 32, 32);
+
+                NODE_POSITIONS.forEach((pos, i) => {
+                    const mat = new THREE.MeshStandardMaterial({
+                        color: 0xffffff,
+                        emissive: 0xcc2936, // Red glow
+                        emissiveIntensity: 0.1,
+                        roughness: 0.3,
+                        metalness: 0.1
+                    });
+                    const mesh = new THREE.Mesh(geo, mat);
+                    mesh.position.set(pos.x, pos.y, pos.z);
+                    this.scene.add(mesh);
+                    this.nodes.push(mesh);
+                    this.basePosY.push(pos.y);
+                });
+
+                // Edges (ropes)
+                const lineMat = new THREE.LineBasicMaterial({ color: 0xcccccc, linewidth: 2 });
+                for (let i = 0; i < this.nodes.length; i++) {
+                    for (let j = i + 1; j < this.nodes.length; j++) {
+                        const pts = [this.nodes[i].position.clone(), this.nodes[j].position.clone()];
+                        const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
+                        this.scene.add(new THREE.Line(lineGeo, lineMat));
+                    }
+                }
+            }
+
+            triggerNode(index, velocity) {
+                const node = this.nodes[index];
+                if (!node) return;
+
+                const intensity = velocity / 127;
+
+                // Scale punch
+                gsap.fromTo(node.scale,
+                    { x: 1.8, y: 1.8, z: 1.8 },
+                    { x: 1, y: 1, z: 1, duration: 0.5, ease: 'elastic.out(1, 0.4)' }
+                );
+
+                // Red glow pulse
+                gsap.fromTo(node.material,
+                    { emissiveIntensity: 1.5 * intensity },
+                    { emissiveIntensity: 0.1, duration: 2, ease: 'power2.out' }
+                );
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+
+                // Gentle float
+                const t = Date.now() * 0.001;
+                this.nodes.forEach((node, i) => {
+                    node.position.y = this.basePosY[i] + Math.sin(t + i) * 0.05;
+                });
+
+                // Apply camera rotation
+                this.scene.rotation.y = this.rotation.y;
+                this.scene.rotation.x = this.rotation.x;
+
+                this.renderer.render(this.scene, this.camera);
+            }
+
+            resize() {
+                this.camera.aspect = innerWidth / innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(innerWidth, innerHeight);
+            }
+        }
+
+        // === MIDI INPUT ===
+        class MIDI {
+            constructor(bus) {
+                this.bus = bus;
+                this.init();
+            }
+
+            async init() {
+                try {
+                    const access = await navigator.requestMIDIAccess();
+                    this.bind(access);
+                    access.onstatechange = () => this.bind(access);
+                } catch (e) {
+                    this.bus.emit('log', 'MIDI: Not available');
+                }
+            }
+
+            bind(access) {
+                let found = false;
+                access.inputs.forEach(input => {
+                    found = true;
+                    this.bus.emit('midi-status', { connected: true, name: input.name });
+                    input.onmidimessage = msg => {
+                        const [status, note, vel] = msg.data;
+                        if (status === 144 && vel > 0) {
+                            // Accept notes 0-5 directly, or mod 6 for higher notes
+                            const sensor = note < 12 ? note : note % 6;
+                            this.bus.emit('trigger', { sensor, velocity: vel, source: 'MIDI' });
+                        }
+                    };
+                });
+                if (!found) this.bus.emit('midi-status', { connected: false });
+            }
+        }
+
+        // === KEYBOARD INPUT ===
+        class Keyboard {
+            constructor(bus) {
+                document.addEventListener('keydown', e => {
+                    if (e.repeat) return;
+                    const n = parseInt(e.key);
+                    if (n >= 1 && n <= 6) {
+                        bus.emit('trigger', { sensor: n - 1, velocity: 80 + Math.random() * 40 | 0, source: 'KBD' });
+                    }
+                });
+            }
+        }
+
+        // === AUTO-PLAY ===
+        class AutoPlay {
+            constructor(bus) {
+                this.bus = bus;
+                this.running = false;
+                this.timer = null;
+            }
+
+            toggle() {
+                this.running = !this.running;
+                if (this.running) this.tick();
+                else clearTimeout(this.timer);
+                return this.running;
+            }
+
+            tick() {
+                if (!this.running) return;
+                const sensor = Math.random() * 6 | 0;
+                const vel = 60 + Math.random() * 60 | 0;
+                this.bus.emit('trigger', { sensor, velocity: vel, source: 'AUTO' });
+                this.timer = setTimeout(() => this.tick(), 200 + Math.random() * 600);
+            }
+        }
+
+        // === MAIN APP ===
+        class App {
+            constructor() {
+                this.bus = new Bus();
+
+                // DOM
+                this.$ = {
+                    overlay: document.getElementById('overlay'),
+                    ledAudio: document.getElementById('led-audio'),
+                    ledMidi: document.getElementById('led-midi'),
+                    midiName: document.getElementById('midi-name'),
+                    btnAuto: document.getElementById('btn-auto'),
+                    presetSelect: document.getElementById('preset-select'),
+                    log: document.getElementById('log')
+                };
+
+                // Modules
+                this.audio = new Audio(this.bus);
+                this.viz = new Viz(document.getElementById('canvas-container'), this.bus);
+                this.midi = new MIDI(this.bus);
+                this.kbd = new Keyboard(this.bus);
+                this.auto = new AutoPlay(this.bus);
+
+                this.bindUI();
+                this.bindLog();
+            }
+
+            bindUI() {
+                // Start
+                this.$.overlay.onclick = async () => {
+                    await this.audio.init();
+                    this.$.overlay.style.opacity = 0;
+                    setTimeout(() => this.$.overlay.remove(), 500);
+                    this.$.ledAudio.classList.add('on');
+                    this.bus.emit('log', 'Audio started');
+                };
+
+                // Auto-play
+                this.$.btnAuto.onclick = () => {
+                    const on = this.auto.toggle();
+                    this.$.btnAuto.textContent = on ? 'Stop Auto-Play' : 'Start Auto-Play';
+                    this.$.btnAuto.classList.toggle('active', on);
+                };
+
+                // Preset
+                this.$.presetSelect.onchange = e => {
+                    this.bus.emit('preset', e.target.value);
+                    this.bus.emit('log', `Preset: ${PRESETS[e.target.value].name}`);
+                };
+
+                // MIDI status
+                this.bus.on('midi-status', s => {
+                    this.$.ledMidi.classList.toggle('on', s.connected);
+                    this.$.midiName.textContent = s.connected ? s.name : 'No MIDI Device';
+                    if (s.connected) this.bus.emit('log', `MIDI: ${s.name}`);
+                });
+            }
+
+            bindLog() {
+                this.bus.on('trigger', d => this.log(`[${d.source}] Sensor ${d.sensor} @ ${d.velocity}`));
+                this.bus.on('log', msg => this.log(msg));
+            }
+
+            log(msg) {
+                const div = document.createElement('div');
+                div.className = 'log-entry';
+                const t = new Date().toISOString().slice(14, 23);
+                div.innerHTML = `<span class="log-time">${t}</span> ${msg}`;
+                this.$.log.prepend(div);
+                while (this.$.log.children.length > 30) this.$.log.lastChild.remove();
+            }
+        }
+
+        // Boot
+        window.addEventListener('DOMContentLoaded', () => window.app = new App());
+    </script>
+</body>
+
+</html>
