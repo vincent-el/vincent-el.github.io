@@ -247,6 +247,8 @@
                     <option value="safe">CMaj9 – Safe & Warm</option>
                     <option value="bright">Pentatonic – Bright</option>
                     <option value="eno">Eno Drones – Ambient</option>
+                    <option value="abm7">A♭m7 – Melancholic</option>
+                    <option value="cbmaj7">C♭maj7 – Ethereal</option>
                     <option value="chaos">Chaos – 5 + Screech</option>
                 </select>
             </section>
@@ -290,7 +292,7 @@
             safe: {
                 name: 'CMaj9 Safe',
                 notes: [36, 43, 52, 59, 62, 67], // C2, G2, E3, B3, D4, G4
-                envelope: { attack: 0.4, decay: 0.2, sustain: 0.6, release: 4 },
+                envelope: { attack: 0.3, decay: 0.2, sustain: 0.6, release: 4 },
                 oscillator: 'sine',
                 filterFreq: 3000,
                 reverbWet: 0.5
@@ -306,9 +308,9 @@
             eno: {
                 name: 'Eno Drones',
                 notes: [36, 52, 55, 59, 64, 71], // C2, E3, G3, B3, E4, B4 (wide)
-                envelope: { attack: 4, decay: 1, sustain: 0.8, release: 12 },
+                envelope: { attack: 2, decay: 0.5, sustain: 0.8, release: 12 },
                 oscillator: 'sine',
-                filterFreq: 1500,
+                filterFreq: 3000,
                 reverbWet: 0.9
             },
             chaos: {
@@ -318,17 +320,24 @@
                 oscillator: 'square',
                 filterFreq: 10000,
                 reverbWet: 0.2
+            },
+            abm7: {
+                name: 'A♭m7 – Melancholic',
+                notes: [44, 48, 51, 54, 56, 60], // A♭2, C3, E♭3, G♭3, A♭3, C4
+                envelope: { attack: 0.1, decay: 0.1, sustain: 0.8, release: 2 },
+                oscillator: 'triangle',
+                filterFreq: 8000,
+                reverbWet: 0.3
+            },
+            cbmaj7: {
+                name: 'C♭maj7 – Ethereal',
+                notes: [35, 39, 42, 47, 51, 58], // B1, E♭2, G♭2, B2, E♭3, B♭3
+                envelope: { attack: 0.1, decay: 0.1, sustain: 0.8, release: 2 },
+                oscillator: 'triangle',
+                filterFreq: 8000,
+                reverbWet: 0.3
             }
         };
-
-        const NODE_POSITIONS = [
-            { x: -2, y: 0, z: 0 },
-            { x: 2, y: 0, z: 0 },
-            { x: 0, y: 1.8, z: 0 },
-            { x: 0, y: -1.8, z: 0 },
-            { x: 0, y: 0, z: 2 },
-            { x: 0, y: 0, z: -2 }
-        ];
 
         // === EVENT BUS ===
         class Bus {
@@ -391,6 +400,23 @@
             }
         }
 
+
+        // Flat "Star/Web" Topology
+        // 1 Center Node + 5 Radial Nodes
+        const RADIUS = 3.5;
+        const NODE_POSITIONS = [
+            { x: 0, y: 0, z: 0 }, // Center
+        ];
+
+        // Generate 5 radial points
+        for (let i = 0; i < 5; i++) {
+            const angle = (i / 5) * Math.PI * 2; // 72 degrees apart
+            NODE_POSITIONS.push({
+                x: Math.cos(angle) * RADIUS,
+                y: 0, // Flat on floor
+                z: Math.sin(angle) * RADIUS
+            });
+        }
         // === 3D VISUALIZER ===
         class Viz {
             constructor(container, bus) {
@@ -407,7 +433,8 @@
 
                 // Camera
                 this.camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 100);
-                this.camera.position.set(0, 2, 8);
+                this.camera.position.set(0, 8, 8); // Higher angle
+                this.camera.lookAt(0, 0, 0);
 
                 // Renderer
                 this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -451,6 +478,11 @@
             }
 
             createNet() {
+                // Offset the whole group to center it in the visible area (left of panel)
+                this.netGroup = new THREE.Group();
+                this.netGroup.position.x = -1.5;
+                this.scene.add(this.netGroup);
+
                 const geo = new THREE.SphereGeometry(0.4, 32, 32);
 
                 NODE_POSITIONS.forEach((pos, i) => {
@@ -463,19 +495,28 @@
                     });
                     const mesh = new THREE.Mesh(geo, mat);
                     mesh.position.set(pos.x, pos.y, pos.z);
-                    this.scene.add(mesh);
+                    this.netGroup.add(mesh);
                     this.nodes.push(mesh);
                     this.basePosY.push(pos.y);
                 });
 
                 // Edges (ropes)
                 const lineMat = new THREE.LineBasicMaterial({ color: 0xcccccc, linewidth: 2 });
-                for (let i = 0; i < this.nodes.length; i++) {
-                    for (let j = i + 1; j < this.nodes.length; j++) {
-                        const pts = [this.nodes[i].position.clone(), this.nodes[j].position.clone()];
-                        const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
-                        this.scene.add(new THREE.Line(lineGeo, lineMat));
-                    }
+
+                // 1. Radial lines (Center to Ring)
+                // Node 0 is center, 1-5 are ring
+                for (let i = 1; i < this.nodes.length; i++) {
+                    const pts = [this.nodes[0].position.clone(), this.nodes[i].position.clone()];
+                    const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
+                    this.netGroup.add(new THREE.Line(lineGeo, lineMat));
+                }
+
+                // 2. Ring lines (1-2, 2-3, ..., 5-1)
+                for (let i = 1; i < this.nodes.length; i++) {
+                    const next = i === this.nodes.length - 1 ? 1 : i + 1;
+                    const pts = [this.nodes[i].position.clone(), this.nodes[next].position.clone()];
+                    const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
+                    this.netGroup.add(new THREE.Line(lineGeo, lineMat));
                 }
             }
 
@@ -540,15 +581,34 @@
 
             bind(access) {
                 let found = false;
+                // Debounce: ignore triggers within this many ms per sensor
+                const DEBOUNCE_MS = 150;
+                const lastTrigger = [0, 0, 0, 0, 0, 0];
+
                 access.inputs.forEach(input => {
                     found = true;
                     this.bus.emit('midi-status', { connected: true, name: input.name });
                     input.onmidimessage = msg => {
                         const [status, note, vel] = msg.data;
-                        if (status === 144 && vel > 0) {
-                            // Accept notes 0-5 directly, or mod 6 for higher notes
-                            const sensor = note < 12 ? note : note % 6;
-                            this.bus.emit('trigger', { sensor, velocity: vel, source: 'MIDI' });
+
+                        const channel = (status & 0x0F) + 1;  // Extract channel (1-16)
+                        const msgType = status & 0xF0;        // Extract message type
+
+                        // Note On = 0x90-0x9F (144-159)
+                        if (msgType === 0x90 && vel > 0) {
+                            // YOUR HARDWARE: Channel number = Sensor index
+                            // Channel 1 → Sensor 0, Channel 2 → Sensor 1, etc.
+                            const sensor = channel - 1;
+
+                            // Only accept channels 1-6 (sensors 0-5)
+                            if (sensor >= 0 && sensor < 6) {
+                                const now = Date.now();
+                                // Debounce: skip if triggered too recently
+                                if (now - lastTrigger[sensor] > DEBOUNCE_MS) {
+                                    lastTrigger[sensor] = now;
+                                    this.bus.emit('trigger', { sensor, velocity: vel, source: 'MIDI', channel });
+                                }
+                            }
                         }
                     };
                 });
@@ -652,7 +712,14 @@
             }
 
             bindLog() {
-                this.bus.on('trigger', d => this.log(`[${d.source}] Sensor ${d.sensor} @ ${d.velocity}`));
+                // Track trigger counts per sensor
+                this.triggerCounts = [0, 0, 0, 0, 0, 0];
+
+                this.bus.on('trigger', d => {
+                    this.triggerCounts[d.sensor]++;
+                    const ch = d.channel ? ` ch:${d.channel}` : '';
+                    this.log(`[${d.source}] Sensor ${d.sensor}${ch} vel:${d.velocity} (#${this.triggerCounts[d.sensor]})`);
+                });
                 this.bus.on('log', msg => this.log(msg));
             }
 
