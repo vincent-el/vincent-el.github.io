@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAIR? Game Components Dashboard</title>
+    <style>
+        :root {
+            --color-raum: #607D8B;
+            --color-klima: #4CAF50;
+            --color-geld: #FFC107;
+            --color-stimme: #9C27B0;
+            --color-bg: #f5f5f5;
+            --color-card-bg: #ffffff;
+            --color-text: #333333;
+            --color-border: #e0e0e0;
+            --color-danger: #E2001A;
+            /* Berlin Red */
+            --font-family: 'Inter', system-ui, sans-serif;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --radius-card: 12px;
+            --radius-sm: 4px;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        header {
+            max-width: 1200px;
+            margin: 0 auto 40px;
+            text-align: center;
+        }
+
+        h1 {
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: #1a1a1a;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Controls */
+        .controls {
+            margin-bottom: 30px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: white;
+            border: 1px solid var(--color-border);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #eee;
+        }
+
+        button.active {
+            background: #333;
+            color: white;
+            border-color: #333;
+        }
+
+        /* Grid Layouts */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+
+        .section-title {
+            border-bottom: 2px solid var(--color-border);
+            padding-bottom: 10px;
+            margin-bottom: 24px;
+            font-weight: 700;
+            color: #555;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Card Component */
+        .card {
+            background: var(--color-card-bg);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--color-border);
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header {
+            padding: 16px;
+            background: #f9f9f9;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .card-subtitle {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .card-body {
+            padding: 16px;
+            flex-grow: 1;
+        }
+
+        .image-placeholder {
+            height: 140px;
+            background: #eee;
+            margin: -16px -16px 16px -16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 0.9rem;
+            font-style: italic;
+            border-bottom: 1px solid var(--color-border);
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Resource Grid within Card */
+        .resource-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .resource-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: #f5f5f5;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .res-raum {
+            color: var(--color-raum);
+            border-left: 4px solid var(--color-raum);
+        }
+
+        .res-klima {
+            color: var(--color-klima);
+            border-left: 4px solid var(--color-klima);
+        }
+
+        .res-geld {
+            color: var(--color-geld);
+            border-left: 4px solid var(--color-geld);
+        }
+
+        .res-stimme {
+            color: var(--color-stimme);
+            border-left: 4px solid var(--color-stimme);
+        }
+
+        .res-val {
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        .res-val.positive {
+            color: inherit;
+        }
+
+        .res-val.negative {
+            color: #d32f2f;
+        }
+
+        .res-val.neutral {
+            color: #999;
+        }
+
+        /* Role Cards */
+        .role-card {
+            border-top: 6px solid #333;
+        }
+
+        .role-card .image-placeholder {
+            height: 200px;
+            /* Taller for stand-up cards */
+        }
+
+        .role-ability {
+            margin-top: 16px;
+            padding: 12px;
+            background: #fff8e1;
+            border: 1px solid #ffe0b2;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+        }
+
+        .role-ability strong {
+            display: block;
+            color: #f57c00;
+            margin-bottom: 4px;
+        }
+
+        /* Justice Cards */
+        .justice-card {
+            border-top: 6px solid var(--color-danger);
+            background: #fff;
+        }
+
+        .justice-card .multiplier-large {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+
+        .quote {
+            font-style: italic;
+            color: #666;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        /* Threshold Track */
+        .track-container {
+            margin: 40px 0;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-sm);
+            overflow-x: auto;
+        }
+
+        .track-timeline {
+            display: flex;
+            align-items: flex-end;
+            padding-top: 40px;
+            min-width: 800px;
+            position: relative;
+        }
+
+        /* The Line */
+        .track-line {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #eee;
+            z-index: 0;
+        }
+
+        .track-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            padding-bottom: 60px;
+            /* Space for the line/labels */
+        }
+
+        .step-circle {
+            width: 36px;
+            height: 36px;
+            background: white;
+            border: 3px solid #ccc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin: 0 auto 10px;
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.3s;
+        }
+
+        .step-label {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: #999;
+            white-space: nowrap;
+        }
+
+        .zone-label {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #666;
+            background: #f0f0f0;
+            padding: 4px 12px;
+            border-radius: 12px;
+            white-space: nowrap;
+            opacity: 0.7;
+        }
+
+        /* Zones coloring */
+        .track-step.zone-fail .step-circle {
+            border-color: #ccc;
+            color: #999;
+        }
+
+        .track-step.zone-barely .step-circle {
+            border-color: #ffb74d;
+            color: #f57c00;
+        }
+
+        .track-step.zone-compromise .step-circle {
+            border-color: #81c784;
+            color: #388e3c;
+        }
+
+        .track-step.zone-utopia .step-circle {
+            border-color: #4db6ac;
+            color: #00796b;
+            box-shadow: 0 0 10px rgba(77, 182, 172, 0.4);
+        }
+
+        /* Threshold Marker */
+        .threshold-marker {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            /* At step 8 */
+            height: 50px;
+            border-left: 2px dashed var(--color-danger);
+            pointer-events: none;
+        }
+
+        .threshold-text {
+            position: absolute;
+            top: -20px;
+            left: -40px;
+            color: var(--color-danger);
+            font-weight: 800;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        /* Microphone */
+        .mic-icon {
+            font-size: 3rem;
+            background: #222;
+            color: white;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .badge-type {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #888;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .deck-stats {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div style="font-size: 3rem; margin-bottom: 10px;">⚖️</div>
+        <h1>FAIR? Component Dashboard (v4)</h1>
+        <p>Digital Print & Play Reference • 28. Jan 2026</p>
+    </header>
+
+    <div class="container">
+        <!-- Controls -->
+        <div class="controls">
+            <button class="active" onclick="filterCards('all')">All Components</button>
+            <button onclick="filterCards('project')">Projects (24)</button>
+            <button onclick="filterCards('role')">Roles (4)</button>
+            <button onclick="filterCards('justice')">Justice (8)</button>
+            <button onclick="filterCards('tracker')">Game Board</button>
+        </div>
+
+        <!-- TRACKER SECTION -->
+        <div id="tracker-section">
+            <div class="section-title">
+                <span>📊 Game Board Elements</span>
+            </div>
+
+            <div class="track-container">
+                <div style="text-align: center; margin-bottom: 20px; font-weight: 700; color: #555;">FORTSCHRITTS-LEISTE
+                    (0-16)</div>
+                <div class="track-timeline">
+                    <!-- JS will populate this -->
+                </div>
+            </div>
+
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                <div class="card" style="text-align: center; padding: 30px;">
+                    <div class="mic-icon">🎤</div>
+                    <h3>Mikrofon-Marker</h3>
+                    <p style="font-size: 0.9rem; color: #666;">Markiert den aktuellen Moderator. Wandert im
+                        Uhrzeigersinn.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROLES SECTION -->
+        <div id="role-section">
+            <div class="section-title">
+                <span>🎭 Rollen (4)</span>
+                <small>Öffentliche Multipliers + Special Ability</small>
+            </div>
+            <div class="grid" id="role-grid">
+                <!-- JS Populated -->
+            </div>
+        </div>
+
+        <!-- JUSTICE SECTION -->
+        <div id="justice-section">
+            <div class="section-title">
+                <span>⚖️ Gerechtigkeit (8)</span>
+                <small>Geheime Multipliers</small>
+            </div>
+            <div class="grid" id="justice-grid">
+                <!-- JS Populated -->
+            </div>
+        </div>
+
+        <!-- PROJECTS SECTION -->
+        <div id="project-section">
+            <div class="section-title">
+                <span>🏗️ Projekte (24)</span>
+                <small>Gemeinsame Entscheidungen</small>
+            </div>
+
+            <div class="deck-stats">
+                <h4 style="margin-top:0">Deck Balance (Netto-Effekte)</h4>
+                <div class="stat-row">
+                    <span class="res-raum" style="border:none">RAUM (Space)</span>
+                    <span>Total +12 / -8 = <strong>+4</strong></span>
+                </div>
+                <div class="stat-row">
+                    <span class="res-klima" style="border:none">KLIMA (Climate)</span>
+                    <span>Total +15 / -10 = <strong>+5</strong></span>
+                </div>
+                <div class="stat-row">
+                    <span class="res-geld" style="border:none">GELD (Money)</span>
+                    <span>Total +26 / -16 = <strong>+10</strong></span>
+                </div>
+                <div class="stat-row">
+                    <span class="res-stimme" style="border:none">STIMME (Voice)</span>
+                    <span>Total +17 / -8 = <strong>+9</strong></span>
+                </div>
+            </div>
+
+            <div class="grid" id="project-grid">
+                <!-- JS Populated -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA ---
+
+        const roles = [
+            {
+                name: "Investor", icon: "🏗️",
+                multipliers: { Raum: 1, Klima: 0, Geld: 2, Stimme: -1 },
+                ability: "MACHT",
+                desc: "1× pro Spiel: DU entscheidest welches Projekt gebaut wird (kein Vote!).",
+                prompt: "Financial power, skyline view, glossy architecture"
+            },
+            {
+                name: "Architekt", icon: "📐",
+                multipliers: { Raum: 2, Klima: 1, Geld: 1, Stimme: 0 },
+                ability: "VISION",
+                desc: "1× pro Spiel: Ignoriere ein einzelnes Veto. Projekt gilt als angenommen.",
+                prompt: "Blueprints, creative workspace, model buildings"
+            },
+            {
+                name: "Aktivist", icon: "🌳",
+                multipliers: { Raum: 1, Klima: 2, Geld: -1, Stimme: 1 },
+                ability: "KEINE MACHT",
+                desc: "ABER: Ziehe 2 Gerechtigkeitskarten, wähle 1. (Mehr Optionen)",
+                prompt: "Green park, protest signs, community garden"
+            },
+            {
+                name: "Politik", icon: "🏛️",
+                multipliers: { Raum: 0, Klima: 1, Geld: -1, Stimme: 2 },
+                ability: "MEHRHEIT",
+                desc: "1× pro Spiel: Diese Abstimmung gilt MEHRHEIT statt Konsens.",
+                prompt: "Town hall, podium, voting ballot"
+            }
+        ];
+
+        const justiceCards = [
+            { name: "Naturschutz", effect: "KLIMA ×2", quote: "Fair ist, wenn das Klima geschützt wird." },
+            { name: "Rendite", effect: "GELD ×2", quote: "Fair ist, wenn Geld fließt." },
+            { name: "Raumgewinn", effect: "RAUM ×2", quote: "Fair ist, wenn Raum erhalten bleibt." },
+            { name: "Demokratie", effect: "STIMME ×2", quote: "Fair ist, wenn alle mitreden." },
+            { name: "Wachstum", effect: "GELD ×2, RAUM ×1", quote: "Fair ist, wenn gebaut wird." },
+            { name: "Nachhaltigkeit", effect: "KLIMA ×2, RAUM ×1", quote: "Fair ist, wenn Umwelt und Raum." },
+            { name: "Partizipation", effect: "STIMME ×2, KLIMA ×1", quote: "Fair ist, wenn Bürger gehört werden." },
+            { name: "Pragmatik", effect: "+3 pro Projekt", quote: "Fair ist, wenn etwas passiert." }
+        ];
+
+        const projects = [
+            { id: 1, name: "Hochhaus-Cluster", theme: "Investoren-Großprojekt", raum: -1, klima: -2, geld: 3, stimme: 0 },
+            { id: 2, name: "Park-Erweiterung", theme: "Grünflächen-Erhalt", raum: 1, klima: 2, geld: -1, stimme: 0 },
+            { id: 3, name: "Bürger-Werkstatt", theme: "Partizipation", raum: 0, klima: 0, geld: -1, stimme: 2 },
+            { id: 4, name: "Senat-Entscheid", theme: "Top-down-Entscheidung", raum: 0, klima: 0, geld: 2, stimme: -2 },
+            { id: 5, name: "Urban Gardening", theme: "Community-Projekt", raum: 0, klima: 2, geld: 0, stimme: 1 },
+            { id: 6, name: "Co-Working Space", theme: "New Work", raum: 1, klima: -1, geld: 2, stimme: 0 },
+            { id: 7, name: "Fahrradweg", theme: "Mobilität", raum: 1, klima: 1, geld: -1, stimme: 1 },
+            { id: 8, name: "Luxus-Lofts", theme: "Gentrifizierung", raum: -2, klima: -1, geld: 3, stimme: 0 },
+            { id: 9, name: "Kita im Park", theme: "Soziale Infrastruktur", raum: 0, klima: 0, geld: -1, stimme: 2 },
+            { id: 10, name: "Windkorridor", theme: "Klimaanpassung", raum: 1, klima: 2, geld: 0, stimme: 0 },
+            { id: 11, name: "Tiefgarage", theme: "Auto-Infrastruktur", raum: -1, klima: -1, geld: 2, stimme: 0 },
+            { id: 12, name: "Wochenmarkt", theme: "Lokale Wirtschaft", raum: 1, klima: 0, geld: 1, stimme: 1 },
+            { id: 13, name: "Denkmalschutz", theme: "Erhaltung", raum: 2, klima: 1, geld: -2, stimme: 0 },
+            { id: 14, name: "Tech-Campus", theme: "Wirtschaftsförderung", raum: -1, klima: -1, geld: 3, stimme: -1 },
+            { id: 15, name: "Protestcamp", theme: "Aktivismus", raum: 1, klima: 0, geld: -2, stimme: 2 },
+            { id: 16, name: "Café-Kultur", theme: "Aufenthaltsqualität", raum: 0, klima: 0, geld: 1, stimme: 1 },
+            { id: 17, name: "Lärmschutzwand", theme: "Anwohnerschutz", raum: -1, klima: 1, geld: -1, stimme: 0 },
+            { id: 18, name: "Baumschutz-Satzung", theme: "Ökologie", raum: 1, klima: 2, geld: -1, stimme: 0 },
+            { id: 19, name: "Pop-up-Galerie", theme: "Kultur", raum: 1, klima: 0, geld: 0, stimme: 1 },
+            { id: 20, name: "Investor-Rückzug", theme: "Stillstand", raum: 1, klima: 1, geld: -2, stimme: 0 },
+            { id: 21, name: "Kompromiss-Entwurf", theme: "Vermittlung", raum: 0, klima: 0, geld: 1, stimme: 1 },
+            { id: 22, name: "Öffentliche Anhörung", theme: "Demokratie", raum: 0, klima: 0, geld: -1, stimme: 3 },
+            { id: 23, name: "Share Deal", theme: "Steuervermeidung", raum: 0, klima: 0, geld: 2, stimme: -2 },
+            { id: 24, name: "Rahmenvertrag", theme: "Altlasten", raum: -1, klima: -1, geld: 2, stimme: -1 }
+        ];
+
+        // --- RENDER FUNCTIONS ---
+
+        function renderRoles() {
+            const container = document.getElementById('role-grid');
+            container.innerHTML = roles.map(role => `
+                <div class="card role-card">
+                    <div class="image-placeholder">
+                        IMAGE PROMPT:<br>${role.prompt}
+                    </div>
+                    <div class="card-header">
+                        <div class="card-title">${role.icon} ${role.name}</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="resource-grid">
+                            <div class="resource-item res-raum">
+                                <span>RAUM</span> <span class="res-val">${fmtMult(role.multipliers.Raum)}</span>
+                            </div>
+                            <div class="resource-item res-klima">
+                                <span>KLIMA</span> <span class="res-val">${fmtMult(role.multipliers.Klima)}</span>
+                            </div>
+                            <div class="resource-item res-geld">
+                                <span>GELD</span> <span class="res-val">${fmtMult(role.multipliers.Geld)}</span>
+                            </div>
+                            <div class="resource-item res-stimme">
+                                <span>STIMME</span> <span class="res-val">${fmtMult(role.multipliers.Stimme)}</span>
+                            </div>
+                        </div>
+                        <div class="role-ability">
+                            <strong>⭐ ${role.ability}</strong>
+                            ${role.desc}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderJustice() {
+            const container = document.getElementById('justice-grid');
+            container.innerHTML = justiceCards.map(card => `
+                <div class="card justice-card">
+                    <div class="card-header">
+                        <div class="card-title">⚖️ ${card.name}</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="multiplier-large">${card.effect}</div>
+                        <div class="quote">"${card.quote}"</div>
+                        <div class="image-placeholder" style="height: 80px; margin-top: 15px; margin-bottom:0;">
+                            IMAGE PROMPT:<br>Symbol for ${card.name}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderProjects() {
+            const container = document.getElementById('project-grid');
+            container.innerHTML = projects.map(p => `
+                <div class="card">
+                    <div class="image-placeholder">
+                        IMAGE PROMPT:<br>Architectural sketch of ${p.name}
+                    </div>
+                    <div class="card-header">
+                        <div>
+                            <span class="badge-type">PROJEKT #${p.id}</span>
+                            <div class="card-title">${p.name}</div>
+                            <div class="card-subtitle">${p.theme}</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="resource-grid">
+                            <div class="resource-item res-raum">
+                                <span>RAUM</span> <span class="res-val ${valClass(p.raum)}">${fmtVal(p.raum)}</span>
+                            </div>
+                            <div class="resource-item res-klima">
+                                <span>KLIMA</span> <span class="res-val ${valClass(p.klima)}">${fmtVal(p.klima)}</span>
+                            </div>
+                            <div class="resource-item res-geld">
+                                <span>GELD</span> <span class="res-val ${valClass(p.geld)}">${fmtVal(p.geld)}</span>
+                            </div>
+                            <div class="resource-item res-stimme">
+                                <span>STIMME</span> <span class="res-val ${valClass(p.stimme)}">${fmtVal(p.stimme)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderTracker() {
+            const timeline = document.querySelector('.track-timeline');
+            let html = '<div class="track-line"></div>';
+
+            // Steps 0 to 16
+            for (let i = 0; i <= 16; i++) {
+                let zoneClass = 'zone-fail';
+                let zoneName = '';
+
+                if (i >= 14) { zoneClass = 'zone-utopia'; if (i === 15) zoneName = "URBANE UTOPIE"; }
+                else if (i >= 11) { zoneClass = 'zone-compromise'; if (i === 12) zoneName = "KOMPROMISS"; }
+                else if (i >= 8) { zoneClass = 'zone-barely'; if (i === 9) zoneName = "GERADE SO"; }
+                else { if (i === 4) zoneName = "STILLSTAND"; }
+
+                html += `
+                    <div class="track-step ${zoneClass}" style="position:relative;">
+                        ${zoneName ? `<div class="zone-label">${zoneName}</div>` : ''}
+                        <div class="step-circle">${i}</div>
+                        ${i === 8 ? '<div class="threshold-marker"><div class="threshold-text">THRESHOLD</div></div>' : ''}
+                    </div>
+                `;
+            }
+            timeline.innerHTML = html;
+        }
+
+        // --- HELPERS ---
+
+        function fmtMult(val) {
+            if (val > 0) return `×${val}`;
+            return `×${val}`; // Handles negative and zero
+        }
+
+        function fmtVal(val) {
+            if (val > 0) return `+${val}`;
+            if (val === 0) return `0`;
+            return `${val}`;
+        }
+
+        function valClass(val) {
+            if (val > 0) return 'positive';
+            if (val < 0) return 'negative';
+            return 'neutral';
+        }
+
+        function filterCards(type) {
+            // Reset buttons
+            document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Hide/Show sections
+            document.getElementById('tracker-section').style.display = (type === 'all' || type === 'tracker') ? 'block' : 'none';
+            document.getElementById('role-section').style.display = (type === 'all' || type === 'role') ? 'block' : 'none';
+            document.getElementById('justice-section').style.display = (type === 'all' || type === 'justice') ? 'block' : 'none';
+            document.getElementById('project-section').style.display = (type === 'all' || type === 'project') ? 'block' : 'none';
+        }
+
+        // --- INIT ---
+        renderRoles();
+        renderJustice();
+        renderProjects();
+        renderTracker();
+
+    </script>
+</body>
+
+</html>
