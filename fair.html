@@ -432,8 +432,8 @@
 
     <header>
         <div style="font-size: 3rem; margin-bottom: 10px;">⚖️</div>
-        <h1>FAIR? Component Dashboard (v4)</h1>
-        <p>Digital Print & Play Reference • 28. Jan 2026</p>
+        <h1>FAIR? Component Dashboard (v4.1)</h1>
+        <p>Digital Print & Play Reference • 1. Feb 2026</p>
     </header>
 
     <div class="container">
@@ -466,6 +466,27 @@
                     <h3>Mikrofon-Marker</h3>
                     <p style="font-size: 0.9rem; color: #666;">Markiert den aktuellen Moderator. Wandert im
                         Uhrzeigersinn.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABSTIMMUNGSKARTEN SECTION -->
+        <div id="voting-section">
+            <div class="section-title">
+                <span>🗳️ Abstimmungskarten (4)</span>
+            </div>
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                <div class="card" style="border-top: 6px solid #333;">
+                    <div class="card-header">
+                        <div class="card-title">🗳️ Abstimmungskarte (A/B)</div>
+                    </div>
+                    <div class="card-body" style="text-align: center; padding: 24px;">
+                        <p style="font-size: 1rem; color: #555; margin: 0;">
+                            <strong>4 Abstimmungskarten (A/B)</strong><br>
+                            Doppelseitig: A vorne, B hinten.<br>
+                            Zum gleichzeitigen Abstimmen auf den Tisch legen.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -531,21 +552,21 @@
 
         const roles = [
             {
-                name: "Investor", icon: "🏗️",
+                name: "Investor:in", icon: "🏗️",
                 multipliers: { Raum: 1, Klima: 0, Geld: 2, Stimme: -1 },
                 ability: "MACHT",
                 desc: "1× pro Spiel: DU entscheidest welches Projekt gebaut wird (kein Vote!).",
                 prompt: "Financial power, skyline view, glossy architecture"
             },
             {
-                name: "Architekt", icon: "📐",
+                name: "Architekt:in", icon: "📐",
                 multipliers: { Raum: 2, Klima: 1, Geld: 1, Stimme: 0 },
                 ability: "VISION",
                 desc: "1× pro Spiel: Ignoriere ein einzelnes Veto. Projekt gilt als angenommen.",
                 prompt: "Blueprints, creative workspace, model buildings"
             },
             {
-                name: "Aktivist", icon: "🌳",
+                name: "Aktivist:in", icon: "🌳",
                 multipliers: { Raum: 1, Klima: 2, Geld: -1, Stimme: 1 },
                 ability: "KEINE MACHT",
                 desc: "ABER: Ziehe 2 Gerechtigkeitskarten, wähle 1. (Mehr Optionen)",
@@ -554,20 +575,20 @@
             {
                 name: "Politik", icon: "🏛️",
                 multipliers: { Raum: 0, Klima: 1, Geld: -1, Stimme: 2 },
-                ability: "MEHRHEIT",
-                desc: "1× pro Spiel: Diese Abstimmung gilt MEHRHEIT statt Konsens.",
+                ability: "MEHRHEIT (2×)",
+                desc: "2× pro Spiel: Diese Abstimmung gilt MEHRHEIT statt Konsens.",
                 prompt: "Town hall, podium, voting ballot"
             }
         ];
 
         const justiceCards = [
-            { name: "Naturschutz", effect: "KLIMA ×2", quote: "Fair ist, wenn das Klima geschützt wird." },
-            { name: "Rendite", effect: "GELD ×2", quote: "Fair ist, wenn Geld fließt." },
-            { name: "Raumgewinn", effect: "RAUM ×2", quote: "Fair ist, wenn Raum erhalten bleibt." },
-            { name: "Demokratie", effect: "STIMME ×2", quote: "Fair ist, wenn alle mitreden." },
-            { name: "Wachstum", effect: "GELD ×2, RAUM ×1", quote: "Fair ist, wenn gebaut wird." },
-            { name: "Nachhaltigkeit", effect: "KLIMA ×2, RAUM ×1", quote: "Fair ist, wenn Umwelt und Raum." },
-            { name: "Partizipation", effect: "STIMME ×2, KLIMA ×1", quote: "Fair ist, wenn Bürger gehört werden." },
+            { name: "Naturschutz", effect: "RAUM ×0, KLIMA ×2, GELD ×0, STIMME ×0", quote: "Fair ist, wenn das Klima geschützt wird." },
+            { name: "Rendite", effect: "RAUM ×0, KLIMA ×0, GELD ×2, STIMME ×0", quote: "Fair ist, wenn Geld fließt." },
+            { name: "Raumgewinn", effect: "RAUM ×2, KLIMA ×0, GELD ×0, STIMME ×0", quote: "Fair ist, wenn Raum erhalten bleibt." },
+            { name: "Demokratie", effect: "RAUM ×0, KLIMA ×0, GELD ×0, STIMME ×2", quote: "Fair ist, wenn alle mitreden." },
+            { name: "Wachstum", effect: "RAUM ×1, KLIMA ×0, GELD ×2, STIMME ×0", quote: "Fair ist, wenn gebaut wird." },
+            { name: "Nachhaltigkeit", effect: "RAUM ×1, KLIMA ×2, GELD ×0, STIMME ×0", quote: "Fair ist, wenn Umwelt und Raum." },
+            { name: "Partizipation", effect: "RAUM ×0, KLIMA ×1, GELD ×0, STIMME ×2", quote: "Fair ist, wenn Bürger gehört werden." },
             { name: "Pragmatik", effect: "+3 pro Projekt", quote: "Fair ist, wenn etwas passiert." }
         ];
 
@@ -577,7 +598,7 @@
             { id: 3, name: "Bürger-Werkstatt", theme: "Partizipation", raum: 0, klima: 0, geld: -1, stimme: 2 },
             { id: 4, name: "Senat-Entscheid", theme: "Top-down-Entscheidung", raum: 0, klima: 0, geld: 2, stimme: -2 },
             { id: 5, name: "Urban Gardening", theme: "Community-Projekt", raum: 0, klima: 2, geld: 0, stimme: 1 },
-            { id: 6, name: "Co-Working Space", theme: "New Work", raum: 1, klima: -1, geld: 2, stimme: 0 },
+            { id: 6, name: "Gewerbehof", theme: "Lokales Gewerbe", raum: 1, klima: -1, geld: 2, stimme: 0 },
             { id: 7, name: "Fahrradweg", theme: "Mobilität", raum: 1, klima: 1, geld: -1, stimme: 1 },
             { id: 8, name: "Luxus-Lofts", theme: "Gentrifizierung", raum: -2, klima: -1, geld: 3, stimme: 0 },
             { id: 9, name: "Kita im Park", theme: "Soziale Infrastruktur", raum: 0, klima: 0, geld: -1, stimme: 2 },
@@ -585,7 +606,7 @@
             { id: 11, name: "Tiefgarage", theme: "Auto-Infrastruktur", raum: -1, klima: -1, geld: 2, stimme: 0 },
             { id: 12, name: "Wochenmarkt", theme: "Lokale Wirtschaft", raum: 1, klima: 0, geld: 1, stimme: 1 },
             { id: 13, name: "Denkmalschutz", theme: "Erhaltung", raum: 2, klima: 1, geld: -2, stimme: 0 },
-            { id: 14, name: "Tech-Campus", theme: "Wirtschaftsförderung", raum: -1, klima: -1, geld: 3, stimme: -1 },
+            { id: 14, name: "Büroquartier", theme: "Gewerbeentwicklung", raum: -1, klima: -1, geld: 3, stimme: -1 },
             { id: 15, name: "Protestcamp", theme: "Aktivismus", raum: 1, klima: 0, geld: -2, stimme: 2 },
             { id: 16, name: "Café-Kultur", theme: "Aufenthaltsqualität", raum: 0, klima: 0, geld: 1, stimme: 1 },
             { id: 17, name: "Lärmschutzwand", theme: "Anwohnerschutz", raum: -1, klima: 1, geld: -1, stimme: 0 },
@@ -636,20 +657,39 @@
 
         function renderJustice() {
             const container = document.getElementById('justice-grid');
-            container.innerHTML = justiceCards.map(card => `
+            container.innerHTML = justiceCards.map(card => {
+                let effectHtml;
+                if (card.effect.startsWith('+')) {
+                    // Special card like PRAGMATIK
+                    effectHtml = `<div class="multiplier-large">${card.effect}</div>`;
+                } else {
+                    // Parse "RAUM ×0, KLIMA ×2, GELD ×0, STIMME ×0" into grid
+                    const parts = card.effect.split(', ').map(p => {
+                        const [res, val] = p.split(' ');
+                        return { res, val };
+                    });
+                    effectHtml = `<div class="resource-grid">` + parts.map(p => {
+                        const resClass = 'res-' + p.res.toLowerCase();
+                        return `<div class="resource-item ${resClass}">
+                                <span>${p.res}</span> <span class="res-val">${p.val}</span>
+                            </div>`;
+                    }).join('') + `</div>`;
+                }
+                return `
                 <div class="card justice-card">
                     <div class="card-header">
                         <div class="card-title">⚖️ ${card.name}</div>
                     </div>
                     <div class="card-body">
-                        <div class="multiplier-large">${card.effect}</div>
+                        ${effectHtml}
                         <div class="quote">"${card.quote}"</div>
                         <div class="image-placeholder" style="height: 80px; margin-top: 15px; margin-bottom:0;">
                             IMAGE PROMPT:<br>Symbol for ${card.name}
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
         function renderProjects() {
@@ -737,6 +777,7 @@
 
             // Hide/Show sections
             document.getElementById('tracker-section').style.display = (type === 'all' || type === 'tracker') ? 'block' : 'none';
+            document.getElementById('voting-section').style.display = (type === 'all' || type === 'tracker') ? 'block' : 'none';
             document.getElementById('role-section').style.display = (type === 'all' || type === 'role') ? 'block' : 'none';
             document.getElementById('justice-section').style.display = (type === 'all' || type === 'justice') ? 'block' : 'none';
             document.getElementById('project-section').style.display = (type === 'all' || type === 'project') ? 'block' : 'none';
