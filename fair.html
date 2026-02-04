@@ -555,68 +555,68 @@
                 name: "Investor:in", icon: "🏗️",
                 multipliers: { Raum: 1, Klima: 0, Geld: 2, Stimme: -1 },
                 ability: "MACHT",
-                desc: "1× pro Spiel: DU entscheidest welches Projekt gebaut wird (kein Vote!).",
+                desc: "1× pro Spiel: DU entscheidest welches Projekt gebaut wird",
                 prompt: "Financial power, skyline view, glossy architecture"
             },
             {
                 name: "Architekt:in", icon: "📐",
                 multipliers: { Raum: 2, Klima: 1, Geld: 1, Stimme: 0 },
                 ability: "VISION",
-                desc: "1× pro Spiel: Ignoriere ein einzelnes Veto. Projekt gilt als angenommen.",
+                desc: "In deinem Zug: Ziehe 4 Projektkarten und lege eine oben auf den Stapel zurück",
                 prompt: "Blueprints, creative workspace, model buildings"
             },
             {
                 name: "Aktivist:in", icon: "🌳",
                 multipliers: { Raum: 1, Klima: 2, Geld: -1, Stimme: 1 },
                 ability: "KEINE MACHT",
-                desc: "ABER: Ziehe 2 Gerechtigkeitskarten, wähle 1. (Mehr Optionen)",
+                desc: "Bei Spielbeginn: Ziehe 2 Gerechtigkeitskarten und wähle 1",
                 prompt: "Green park, protest signs, community garden"
             },
             {
-                name: "Politik", icon: "🏛️",
+                name: "Politiker:in", icon: "🏛️",
                 multipliers: { Raum: 0, Klima: 1, Geld: -1, Stimme: 2 },
-                ability: "MEHRHEIT (2×)",
+                ability: "DEMOKRATIE (2×)",
                 desc: "2× pro Spiel: Diese Abstimmung gilt MEHRHEIT statt Konsens.",
                 prompt: "Town hall, podium, voting ballot"
             }
         ];
 
         const justiceCards = [
-            { name: "Naturschutz", effect: "RAUM ×0, KLIMA ×2, GELD ×0, STIMME ×0", quote: "Fair ist, wenn das Klima geschützt wird." },
-            { name: "Rendite", effect: "RAUM ×0, KLIMA ×0, GELD ×2, STIMME ×0", quote: "Fair ist, wenn Geld fließt." },
-            { name: "Raumgewinn", effect: "RAUM ×2, KLIMA ×0, GELD ×0, STIMME ×0", quote: "Fair ist, wenn Raum erhalten bleibt." },
+            { name: "Naturschutz", effect: "RAUM ×0, KLIMA ×2, GELD ×0, STIMME ×0", quote: "Fair ist, wenn KLIMA geschützt wird." },
+            { name: "Rendite", effect: "RAUM ×0, KLIMA ×0, GELD ×2, STIMME ×0", quote: "Fair ist, wenn GELD fließt." },
+            { name: "Raumgewinn", effect: "RAUM ×2, KLIMA ×0, GELD ×0, STIMME ×0", quote: "Fair ist, wenn RAUM erhalten bleibt." },
             { name: "Demokratie", effect: "RAUM ×0, KLIMA ×0, GELD ×0, STIMME ×2", quote: "Fair ist, wenn alle mitreden." },
-            { name: "Wachstum", effect: "RAUM ×1, KLIMA ×0, GELD ×2, STIMME ×0", quote: "Fair ist, wenn gebaut wird." },
-            { name: "Nachhaltigkeit", effect: "RAUM ×1, KLIMA ×2, GELD ×0, STIMME ×0", quote: "Fair ist, wenn Umwelt und Raum." },
-            { name: "Partizipation", effect: "RAUM ×0, KLIMA ×1, GELD ×0, STIMME ×2", quote: "Fair ist, wenn Bürger gehört werden." },
-            { name: "Pragmatik", effect: "+3 pro Projekt", quote: "Fair ist, wenn etwas passiert." }
+            { name: "Wachstum", effect: "RAUM ×1, KLIMA ×0, GELD ×2, STIMME ×0", quote: "Fair ist, wenn wir unsere Stadt weiterentwickeln" },
+            { name: "Nachhaltigkeit", effect: "RAUM ×1, KLIMA ×2, GELD ×0, STIMME ×0", quote: "Fair ist, wenn Umwelt und Raum geschützt." },
+            { name: "Partizipation", effect: "RAUM ×0, KLIMA ×1, GELD ×0, STIMME ×2", quote: "Fair ist, wenn alle gehört werden." },
+            { name: "Pragmatik", effect: "+3 pro gebautem Projekt", quote: "Fair ist, wenn etwas passiert." }
         ];
 
         const projects = [
-            { id: 1, name: "Hochhaus-Cluster", theme: "Investoren-Großprojekt", raum: -1, klima: -2, geld: 3, stimme: 0 },
-            { id: 2, name: "Park-Erweiterung", theme: "Grünflächen-Erhalt", raum: 1, klima: 2, geld: -1, stimme: 0 },
-            { id: 3, name: "Bürger-Werkstatt", theme: "Partizipation", raum: 0, klima: 0, geld: -1, stimme: 2 },
-            { id: 4, name: "Senat-Entscheid", theme: "Top-down-Entscheidung", raum: 0, klima: 0, geld: 2, stimme: -2 },
-            { id: 5, name: "Urban Gardening", theme: "Community-Projekt", raum: 0, klima: 2, geld: 0, stimme: 1 },
-            { id: 6, name: "Gewerbehof", theme: "Lokales Gewerbe", raum: 1, klima: -1, geld: 2, stimme: 0 },
-            { id: 7, name: "Fahrradweg", theme: "Mobilität", raum: 1, klima: 1, geld: -1, stimme: 1 },
-            { id: 8, name: "Luxus-Lofts", theme: "Gentrifizierung", raum: -2, klima: -1, geld: 3, stimme: 0 },
-            { id: 9, name: "Kita im Park", theme: "Soziale Infrastruktur", raum: 0, klima: 0, geld: -1, stimme: 2 },
-            { id: 10, name: "Windkorridor", theme: "Klimaanpassung", raum: 1, klima: 2, geld: 0, stimme: 0 },
-            { id: 11, name: "Tiefgarage", theme: "Auto-Infrastruktur", raum: -1, klima: -1, geld: 2, stimme: 0 },
-            { id: 12, name: "Wochenmarkt", theme: "Lokale Wirtschaft", raum: 1, klima: 0, geld: 1, stimme: 1 },
-            { id: 13, name: "Denkmalschutz", theme: "Erhaltung", raum: 2, klima: 1, geld: -2, stimme: 0 },
-            { id: 14, name: "Büroquartier", theme: "Gewerbeentwicklung", raum: -1, klima: -1, geld: 3, stimme: -1 },
-            { id: 15, name: "Protestcamp", theme: "Aktivismus", raum: 1, klima: 0, geld: -2, stimme: 2 },
-            { id: 16, name: "Café-Kultur", theme: "Aufenthaltsqualität", raum: 0, klima: 0, geld: 1, stimme: 1 },
-            { id: 17, name: "Lärmschutzwand", theme: "Anwohnerschutz", raum: -1, klima: 1, geld: -1, stimme: 0 },
-            { id: 18, name: "Baumschutz-Satzung", theme: "Ökologie", raum: 1, klima: 2, geld: -1, stimme: 0 },
-            { id: 19, name: "Pop-up-Galerie", theme: "Kultur", raum: 1, klima: 0, geld: 0, stimme: 1 },
-            { id: 20, name: "Investor-Rückzug", theme: "Stillstand", raum: 1, klima: 1, geld: -2, stimme: 0 },
-            { id: 21, name: "Kompromiss-Entwurf", theme: "Vermittlung", raum: 0, klima: 0, geld: 1, stimme: 1 },
-            { id: 22, name: "Öffentliche Anhörung", theme: "Demokratie", raum: 0, klima: 0, geld: -1, stimme: 3 },
-            { id: 23, name: "Share Deal", theme: "Steuervermeidung", raum: 0, klima: 0, geld: 2, stimme: -2 },
-            { id: 24, name: "Rahmenvertrag", theme: "Altlasten", raum: -1, klima: -1, geld: 2, stimme: -1 }
+            { id: 1, name: "Hochhaus-Siedlung", theme: "Investoren-Großprojekt", raum: -3, klima: -2, geld: 3, stimme: 0 },
+            { id: 2, name: "Parkerweiterung", theme: "Grünflächen-Erhalt", raum: 2, klima: 2, geld: -1, stimme: 0 },
+            { id: 3, name: "Bürgerwerkstatt", theme: "Partizipation", raum: 1, klima: 0, geld: -1, stimme: 2 },
+            { id: 4, name: "Senatsentscheid", theme: "Top-down-Entscheidung", raum: 1, klima: 1, geld: 0, stimme: -1 },
+            { id: 5, name: "Gemeinschaftsgarten", theme: "Community-Projekt", raum: 1, klima: 2, geld: 0, stimme: 0 },
+            { id: 6, name: "Grillplatz", theme: "Lokales Gewerbe", raum: 0, klima: -1, geld: 1, stimme: -1 },
+            { id: 7, name: "Fahrradweg", theme: "Mobilität", raum: 0, klima: 2, geld: -1, stimme: 1 },
+            { id: 8, name: "Luxus Penthouse", theme: "Gentrifizierung", raum: -2, klima: -1, geld: 1, stimme: -2 },
+            { id: 9, name: "Kita", theme: "Soziale Infrastruktur", raum: -1, klima: 0, geld: -2, stimme: 1 },
+            { id: 10, name: "Windkorridor", theme: "Klimaanpassung", raum: 2, klima: 2, geld: 0, stimme: 0 },
+            { id: 11, name: "Tiefgarage", theme: "Auto-Infrastruktur", raum: 1, klima: -1, geld: -2, stimme: 0 },
+            { id: 12, name: "Wochenmarkt", theme: "Lokale Wirtschaft", raum: 0, klima: 1, geld: 1, stimme: 1 },
+            { id: 13, name: "Spielplatz", theme: "Erhaltung", raum: -1, klima: 0, geld: -1, stimme: 1 },
+            { id: 14, name: "Büros", theme: "Gewerbeentwicklung", raum: -2, klima: 0, geld: 2, stimme: -2 },
+            { id: 15, name: "Bauarbeiten", theme: "Aktivismus", raum: 0, klima: -2, geld: 2, stimme: -2 },
+            { id: 16, name: "Kiez Café", theme: "Aufenthaltsqualität", raum: -1, klima: 0, geld: 1, stimme: 2 },
+            { id: 17, name: "Lärmschutzwand", theme: "Anwohnerschutz", raum: 0, klima: 2, geld: -1, stimme: 1 },
+            { id: 18, name: "Waldstück", theme: "Ökologie", raum: 1, klima: 3, geld: 0, stimme: 0 },
+            { id: 19, name: "Freiluftheater", theme: "Kultur", raum: 1, klima: 0, geld: 0, stimme: 1 },
+            { id: 20, name: "Finanzierungstopp", theme: "Stillstand", raum: 2, klima: 0, geld: -2, stimme: -2 },
+            { id: 21, name: "Kompromiss Entwurf", theme: "Vermittlung", raum: 1, klima: 0, geld: 1, stimme: 1 },
+            { id: 22, name: "Öffentliche Anhörung", theme: "Demokratie", raum: 0, klima: 0, geld: -2, stimme: 2 },
+            { id: 23, name: "Parkplatz", theme: "Steuervermeidung", raum: -3, klima: -2, geld: 2, stimme: 0 },
+            { id: 24, name: "Festival", theme: "Altlasten", raum: 0, klima: -3, geld: 1, stimme: 1 }
         ];
 
         // --- RENDER FUNCTIONS ---
